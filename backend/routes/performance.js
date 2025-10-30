@@ -237,10 +237,25 @@ router.post('/', requireAuth, requireRole(['admin', 'hr', 'manager']), async (re
 
     // Get reviewer ID from authenticated user
     const reviewerResult = await query('SELECT id FROM employees WHERE user_id = $1', [req.user.id]);
+    
+    // If admin doesn't have employee profile, use the first admin/HR employee as reviewer
+    let reviewerId;
     if (reviewerResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Reviewer profile not found' });
+      // For admin/HR without employee profile, use any admin/hr employee as default reviewer
+      const defaultReviewerResult = await query(
+        `SELECT e.id FROM employees e 
+         JOIN users u ON u.id = e.user_id 
+         WHERE u.role IN ('admin', 'hr', 'manager') 
+         ORDER BY e.id ASC LIMIT 1`
+      );
+      
+      if (defaultReviewerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'No reviewer found. Please create an employee profile first.' });
+      }
+      reviewerId = defaultReviewerResult.rows[0].id;
+    } else {
+      reviewerId = reviewerResult.rows[0].id;
     }
-    const reviewerId = reviewerResult.rows[0].id;
 
     // Use overall score for all individual scores if not provided
     const score = parseFloat(overall_score);

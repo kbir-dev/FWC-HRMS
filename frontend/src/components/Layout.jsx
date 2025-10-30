@@ -77,10 +77,11 @@ const Layout = () => {
     const roleSpecificItems = {
       admin: [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+        { text: 'AI Shortlisted', icon: <SmartToyIcon />, path: '/shortlisted' },
+        { text: 'Applications', icon: <DescriptionIcon />, path: '/applications' },
+        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
         { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
         { text: 'Departments', icon: <BusinessIcon />, path: '/employees' },
-        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
-        { text: 'Applications', icon: <DescriptionIcon />, path: '/applications' },
         { text: 'Attendance', icon: <CalendarTodayIcon />, path: '/attendance' },
         { text: 'Payroll', icon: <AttachMoneyIcon />, path: '/payroll' },
         { text: 'Performance', icon: <AssessmentIcon />, path: '/performance' },
@@ -88,9 +89,10 @@ const Layout = () => {
       ],
       hr: [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-        { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
-        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
+        { text: 'AI Shortlisted', icon: <SmartToyIcon />, path: '/shortlisted' },
         { text: 'Applications', icon: <DescriptionIcon />, path: '/applications' },
+        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
+        { text: 'Employees', icon: <PeopleIcon />, path: '/employees' },
         { text: 'Attendance', icon: <CalendarTodayIcon />, path: '/attendance' },
         { text: 'Payroll', icon: <AttachMoneyIcon />, path: '/payroll' },
         { text: 'Performance', icon: <AssessmentIcon />, path: '/performance' },
@@ -98,8 +100,9 @@ const Layout = () => {
       ],
       recruiter: [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
+        { text: 'AI Shortlisted', icon: <SmartToyIcon />, path: '/shortlisted' },
         { text: 'Applications', icon: <DescriptionIcon />, path: '/applications' },
+        { text: 'Jobs', icon: <WorkIcon />, path: '/jobs' },
       ],
       manager: [
         { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },

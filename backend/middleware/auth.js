@@ -59,7 +59,11 @@ export const authorize = (...allowedRoles) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
     
-    if (!allowedRoles.includes(req.user.role)) {
+    // Handle both array and spread arguments
+    const roles = Array.isArray(allowedRoles[0]) ? allowedRoles[0] : allowedRoles;
+    
+    if (!roles.includes(req.user.role)) {
+      console.log(`Access denied: User role "${req.user.role}" not in allowed roles: ${roles.join(', ')}`);
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
     

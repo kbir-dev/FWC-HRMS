@@ -12,6 +12,7 @@ import JobCreate from './pages/JobCreate';
 import JobApplication from './pages/JobApplication';
 import Applications from './pages/Applications';
 import ApplicationDetails from './pages/ApplicationDetails';
+import AIShortlisted from './pages/AIShortlisted';
 import Employees from './pages/Employees';
 import Attendance from './pages/Attendance';
 import Payroll from './pages/Payroll';
@@ -49,6 +50,7 @@ function App() {
             <Route path="leave" element={<LeaveManagement />} />
             <Route path="applications" element={<Applications />} />
             <Route path="applications/:id" element={<ApplicationDetails />} />
+            <Route path="shortlisted" element={<AIShortlisted />} />
             <Route path="jobs" element={<Jobs />} />
             <Route path="jobs/create" element={<JobCreate />} />
             <Route path="jobs/:id" element={<JobDetails />} />

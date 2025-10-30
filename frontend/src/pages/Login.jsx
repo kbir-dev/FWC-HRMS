@@ -119,7 +119,7 @@ const Login = () => {
                 </Typography>
               </Link>
             </Box>
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="caption" display="block" gutterBottom sx={{ fontWeight: 600 }}>
                 Demo Accounts (Password: password123):
               </Typography>

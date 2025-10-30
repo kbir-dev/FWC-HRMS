@@ -28,45 +28,46 @@ const EmployeeDashboard = () => {
         const response = await apiClient.get('/dashboard/employee');
         return response.data;
       } catch (error) {
+        // Fallback data matching actual database seed
         return {
           personalInfo: {
             name: user?.email?.split('@')[0] || 'Employee',
-            position: 'Software Engineer',
+            position: 'Senior Software Engineer',
             department: 'Engineering',
-            manager: 'David Chen',
-            joinDate: 'Jan 15, 2023',
+            manager: 'Tech Manager',
+            joinDate: 'Jan 15, 2024',
           },
           attendanceStats: {
-            presentDays: 18,
-            absentDays: 1,
-            lateDays: 2,
+            presentDays: 20,
+            absentDays: 0,
+            lateDays: 1,
             totalDays: 21,
           },
           leaveBalance: [
-            { type: 'Annual Leave', available: 12, used: 8, total: 20 },
-            { type: 'Sick Leave', available: 5, used: 3, total: 8 },
-            { type: 'Casual Leave', available: 4, used: 2, total: 6 },
+            { type: 'Vacation', available: 13, used: 2, total: 15 },
+            { type: 'Sick Leave', available: 8, used: 2, total: 10 },
+            { type: 'Personal', available: 4, used: 1, total: 5 },
           ],
           attendanceTrend: [
             { name: 'Week 1', present: 5, absent: 0 },
-            { name: 'Week 2', present: 4, absent: 1 },
+            { name: 'Week 2', present: 5, absent: 0 },
             { name: 'Week 3', present: 5, absent: 0 },
-            { name: 'Week 4', present: 4, absent: 0 },
+            { name: 'Week 4', present: 5, absent: 0 },
           ],
           recentPayslips: [
             {
-              month: 'September 2025',
-              gross: '$5,500',
-              deductions: '$1,100',
-              net: '$4,400',
-              date: 'Sep 30, 2025',
+              month: 'September 2024',
+              gross: '$126,500',
+              deductions: '$39,900',
+              net: '$87,700',
+              date: 'Sep 30, 2024',
             },
             {
-              month: 'August 2025',
-              gross: '$5,500',
-              deductions: '$1,100',
-              net: '$4,400',
-              date: 'Aug 31, 2025',
+              month: 'August 2024',
+              gross: '$126,500',
+              deductions: '$39,900',
+              net: '$87,700',
+              date: 'Aug 31, 2024',
             },
           ],
           performanceScore: {
@@ -77,22 +78,21 @@ const EmployeeDashboard = () => {
           },
           internalJobs: [
             {
-              title: 'Senior Frontend Developer',
+              title: 'Senior Full Stack Engineer',
               department: 'Engineering',
               type: 'Full-time',
-              posted: '3 days ago',
+              posted: 'This week',
             },
             {
-              title: 'Tech Lead',
+              title: 'Full Stack Developer',
               department: 'Engineering',
               type: 'Full-time',
-              posted: '1 week ago',
+              posted: 'This week',
             },
           ],
           upcomingEvents: [
-            { event: 'Team Meeting', date: 'Oct 30, 2025', type: 'Meeting' },
-            { event: 'Public Holiday', date: 'Nov 1, 2025', type: 'Holiday' },
-            { event: 'Performance Review', date: 'Nov 15, 2025', type: 'Review' },
+            { event: 'Team Meeting', date: new Date(Date.now() + 86400000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }), type: 'Meeting' },
+            { event: 'Performance Review', date: new Date(Date.now() + 15 * 86400000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }), type: 'Review' },
           ],
         };
       }

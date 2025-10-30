@@ -192,7 +192,7 @@ const NotificationCenter = () => {
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: notification.read ? 'grey.400' : 'primary.main' }}>
+                    <Avatar sx={{ bgcolor: notification.read ? 'action.disabled' : 'primary.main' }}>
                       {getNotificationMuiIcon(notification.type)}
                     </Avatar>
                   </ListItemAvatar>

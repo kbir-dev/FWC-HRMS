@@ -314,7 +314,7 @@ const PerformanceReviews = () => {
                     sx={{
                       height: 8,
                       borderRadius: 4,
-                      backgroundColor: 'grey.200',
+                      backgroundColor: 'action.hover',
                       '& .MuiLinearProgress-bar': {
                         backgroundColor: getScoreColor(parseFloat(item.score)),
                       },
@@ -569,7 +569,7 @@ const PerformanceReviews = () => {
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                     Additional Comments
                   </Typography>
-                  <Paper sx={{ p: 2, bgcolor: 'grey.100' }}>
+                  <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
                     <Typography variant="body2">{selectedReview.comments}</Typography>
                   </Paper>
                 </Box>
@@ -596,13 +596,20 @@ const PerformanceReviews = () => {
                     label="Employee"
                     onChange={(e) => setCreateForm({ ...createForm, employee_id: e.target.value })}
                   >
-                    {employeesData?.employees?.map((emp) => (
-                      <MenuItem key={emp.id} value={emp.id}>
-                        {emp.full_name} - {emp.employee_code}
-                      </MenuItem>
-                    ))}
+                    {employeesData?.employees?.length === 0 ? (
+                      <MenuItem disabled>No employees found</MenuItem>
+                    ) : (
+                      employeesData?.employees?.map((emp) => (
+                        <MenuItem key={emp.id} value={emp.id}>
+                          {emp.full_name} - {emp.employee_code} ({emp.position || 'N/A'})
+                        </MenuItem>
+                      ))
+                    )}
                   </Select>
                 </FormControl>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Select the employee to review. All active employees are shown.
+                </Typography>
               </Grid>
               <Grid item xs={6}>
                 <TextField

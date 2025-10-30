@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 const QuickActions = ({ actions = [] }) => {
   const navigate = useNavigate();
 
-  const handleAction = (action) => {
+  const handleAction = (e, action) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (action.path) {
       navigate(action.path);
     } else if (action.onClick) {
@@ -25,7 +28,7 @@ const QuickActions = ({ actions = [] }) => {
                 boxShadow: 4,
               },
             }}
-            onClick={() => handleAction(action)}
+            onClick={(e) => handleAction(e, action)}
           >
             <CardContent>
               <Box display="flex" alignItems="center" gap={2}>

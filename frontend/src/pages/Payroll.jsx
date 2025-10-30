@@ -28,6 +28,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import {
   AttachMoney,
@@ -36,6 +38,9 @@ import {
   Receipt,
   Visibility,
   PlayArrow,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -45,21 +50,45 @@ import toast from 'react-hot-toast';
 const Payroll = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(''); // Empty = View All
+  const [selectedYear, setSelectedYear] = useState(''); // Empty = View All
   const [selectedPayroll, setSelectedPayroll] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [openProcessDialog, setOpenProcessDialog] = useState(false);
   const [processMonth, setProcessMonth] = useState(new Date().getMonth() + 1);
   const [processYear, setProcessYear] = useState(new Date().getFullYear());
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editingPayroll, setEditingPayroll] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deletingPayroll, setDeletingPayroll] = useState(null);
+  
+  // Payroll form state
+  const [formData, setFormData] = useState({
+    employeeId: '',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+    basicSalary: '',
+    hra: '',
+    da: '',
+    otherAllowances: '',
+    pf: '',
+    tax: '',
+    otherDeductions: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMethod: 'bank_transfer',
+    paymentStatus: 'pending',
+  });
 
   // Fetch payroll records
   const { data, isLoading } = useQuery({
     queryKey: ['payroll', selectedMonth, selectedYear],
     queryFn: async () => {
-      const response = await apiClient.get('/payroll', {
-        params: { month: selectedMonth, year: selectedYear }
-      });
+      const params = {};
+      if (selectedMonth) params.month = selectedMonth;
+      if (selectedYear) params.year = selectedYear;
+      
+      const response = await apiClient.get('/payroll', { params });
       return response.data;
     },
     enabled: ['admin', 'hr'].includes(user?.role),
@@ -79,6 +108,16 @@ const Payroll = () => {
       return null;
     },
     enabled: user?.role === 'employee',
+  });
+
+  // Fetch all employees for dropdown
+  const { data: employeesData } = useQuery({
+    queryKey: ['employees'],
+    queryFn: async () => {
+      const response = await apiClient.get('/employees');
+      return response.data;
+    },
+    enabled: ['admin', 'hr'].includes(user?.role),
   });
 
   const handleViewDetails = (payroll) => {
@@ -109,6 +148,167 @@ const Payroll = () => {
 
   const handleProcessPayroll = () => {
     processPayrollMutation.mutate({ month: processMonth, year: processYear });
+  };
+
+  // Delete payroll mutation
+  const deletePayrollMutation = useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/payroll/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Payroll record deleted successfully!');
+      setOpenDeleteDialog(false);
+      setDeletingPayroll(null);
+      queryClient.invalidateQueries(['payroll']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error || 'Failed to delete payroll');
+    },
+  });
+
+  // Create payroll mutation
+  const createPayrollMutation = useMutation({
+    mutationFn: async (payrollData) => {
+      const response = await apiClient.post('/payroll', payrollData);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Payroll created successfully!');
+      setOpenCreateDialog(false);
+      resetForm();
+      queryClient.invalidateQueries(['payroll']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error || 'Failed to create payroll');
+    },
+  });
+
+  // Update payroll mutation
+  const updatePayrollMutation = useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put(`/payroll/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Payroll updated successfully!');
+      setOpenEditDialog(false);
+      setEditingPayroll(null);
+      resetForm();
+      queryClient.invalidateQueries(['payroll']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error || 'Failed to update payroll');
+    },
+  });
+
+  const handleDeletePayroll = () => {
+    if (deletingPayroll) {
+      deletePayrollMutation.mutate(deletingPayroll.id);
+    }
+  };
+
+  const handleEditClick = (payroll) => {
+    // Pre-fill form with existing payroll data
+    setFormData({
+      employeeId: payroll.employee_id,
+      month: payroll.month,
+      year: payroll.year,
+      basicSalary: payroll.basic_salary,
+      hra: payroll.allowances?.hra || '',
+      da: payroll.allowances?.da || '',
+      otherAllowances: payroll.allowances?.other || '',
+      pf: payroll.deductions?.pf || '',
+      tax: payroll.tax || '',
+      otherDeductions: payroll.deductions?.other || '',
+      paymentDate: payroll.payment_date || new Date().toISOString().split('T')[0],
+      paymentMethod: payroll.payment_method || 'bank_transfer',
+      paymentStatus: payroll.payment_status || 'pending',
+    });
+    setEditingPayroll(payroll);
+    setOpenEditDialog(true);
+  };
+
+  const handleDeleteClick = (payroll) => {
+    setDeletingPayroll(payroll);
+    setOpenDeleteDialog(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      employeeId: '',
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+      basicSalary: '',
+      hra: '',
+      da: '',
+      otherAllowances: '',
+      pf: '',
+      tax: '',
+      otherDeductions: '',
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: 'bank_transfer',
+      paymentStatus: 'pending',
+    });
+  };
+
+  const handleCreateClick = () => {
+    resetForm();
+    setOpenCreateDialog(true);
+  };
+
+  const handleFormChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const calculateGrossAndNet = () => {
+    const basic = parseFloat(formData.basicSalary) || 0;
+    const hra = parseFloat(formData.hra) || 0;
+    const da = parseFloat(formData.da) || 0;
+    const otherAllow = parseFloat(formData.otherAllowances) || 0;
+    const pf = parseFloat(formData.pf) || 0;
+    const tax = parseFloat(formData.tax) || 0;
+    const otherDed = parseFloat(formData.otherDeductions) || 0;
+
+    const gross = basic + hra + da + otherAllow;
+    const totalDeductions = pf + tax + otherDed;
+    const net = gross - totalDeductions;
+
+    return { gross, net, totalDeductions };
+  };
+
+  const handleSubmitPayroll = () => {
+    // Validate required fields
+    if (!formData.employeeId || !formData.basicSalary) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const { gross, net } = calculateGrossAndNet();
+
+    const payrollData = {
+      employeeId: formData.employeeId,
+      month: formData.month,
+      year: formData.year,
+      baseSalary: parseFloat(formData.basicSalary),
+      allowances: {
+        hra: parseFloat(formData.hra) || 0,
+        da: parseFloat(formData.da) || 0,
+        other: parseFloat(formData.otherAllowances) || 0,
+      },
+      deductions: {
+        pf: parseFloat(formData.pf) || 0,
+        other: parseFloat(formData.otherDeductions) || 0,
+      },
+      taxAmount: parseFloat(formData.tax) || 0,
+      paymentDate: formData.paymentDate,
+      paymentMethod: formData.paymentMethod,
+    };
+
+    if (editingPayroll) {
+      updatePayrollMutation.mutate({ id: editingPayroll.id, data: payrollData });
+    } else {
+      createPayrollMutation.mutate(payrollData);
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -252,13 +452,22 @@ const Payroll = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           Payroll Management
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<PlayArrow />}
-          onClick={() => setOpenProcessDialog(true)}
-        >
-          Process Payroll
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={handleCreateClick}
+          >
+            Create Payroll
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<PlayArrow />}
+            onClick={() => setOpenProcessDialog(true)}
+          >
+            Process Payroll
+          </Button>
+        </Box>
       </Box>
 
       {/* Summary Cards */}
@@ -267,7 +476,9 @@ const Payroll = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Total Payroll ({new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'short' })})
+                Total Payroll {selectedMonth && selectedYear 
+                  ? `(${new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'short' })} ${selectedYear})`
+                  : '(All Periods)'}
               </Typography>
               <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                 {formatCurrency(calculateTotalPayroll(data?.payrolls))}
@@ -306,14 +517,15 @@ const Payroll = () => {
       </Grid>
 
       {/* Month/Year Filter */}
-      <Box display="flex" gap={2} mb={3}>
+      <Box display="flex" gap={2} mb={3} alignItems="center">
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Month</InputLabel>
           <Select
-            value={selectedMonth}
+            value={selectedMonth || ''}
             label="Month"
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
+            <MenuItem value="">All Months</MenuItem>
             {[...Array(12)].map((_, i) => (
               <MenuItem key={i + 1} value={i + 1}>
                 {new Date(2000, i).toLocaleString('default', { month: 'long' })}
@@ -324,17 +536,30 @@ const Payroll = () => {
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Year</InputLabel>
           <Select
-            value={selectedYear}
+            value={selectedYear || ''}
             label="Year"
             onChange={(e) => setSelectedYear(e.target.value)}
           >
-            {[2024, 2025, 2026].map((year) => (
+            <MenuItem value="">All Years</MenuItem>
+            {[2023, 2024, 2025, 2026].map((year) => (
               <MenuItem key={year} value={year}>
                 {year}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setSelectedMonth('');
+            setSelectedYear('');
+          }}
+        >
+          View All
+        </Button>
+        <Typography variant="body2" color="text.secondary">
+          Showing {data?.payrolls?.length || 0} of {data?.pagination?.total || 0} records
+        </Typography>
       </Box>
 
       {/* Payroll Table */}
@@ -387,13 +612,31 @@ const Payroll = () => {
                     <Chip label={payroll.payment_method?.replace('_', ' ')} size="small" />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      startIcon={<Visibility />}
-                      onClick={() => handleViewDetails(payroll)}
-                    >
-                      Details
-                    </Button>
+                    <Box display="flex" gap={1}>
+                      <Button
+                        size="small"
+                        startIcon={<Visibility />}
+                        onClick={() => handleViewDetails(payroll)}
+                      >
+                        Details
+                      </Button>
+                      <Button
+                        size="small"
+                        color="primary"
+                        startIcon={<EditIcon />}
+                        onClick={() => handleEditClick(payroll)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => handleDeleteClick(payroll)}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))
@@ -557,6 +800,285 @@ const Payroll = () => {
             startIcon={processPayrollMutation.isLoading ? <CircularProgress size={20} /> : <PlayArrow />}
           >
             {processPayrollMutation.isLoading ? 'Processing...' : 'Process'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)} maxWidth="sm">
+        <DialogTitle>Delete Payroll Record</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete the payroll record for{' '}
+            <strong>{deletingPayroll?.full_name}</strong> for{' '}
+            <strong>
+              {deletingPayroll && format(new Date(deletingPayroll.year, deletingPayroll.month - 1), 'MMMM yyyy')}
+            </strong>
+            ?
+          </Typography>
+          <Typography color="error" sx={{ mt: 2 }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeletePayroll}
+            disabled={deletePayrollMutation.isLoading}
+            startIcon={deletePayrollMutation.isLoading ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            {deletePayrollMutation.isLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create/Edit Payroll Dialog */}
+      <Dialog 
+        open={openCreateDialog || openEditDialog} 
+        onClose={() => {
+          setOpenCreateDialog(false);
+          setOpenEditDialog(false);
+          setEditingPayroll(null);
+          resetForm();
+        }} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle>{editingPayroll ? 'Edit Payroll Record' : 'Create Payroll Record'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <Grid container spacing={2}>
+              {/* Employee Selection */}
+              <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel>Employee</InputLabel>
+                  <Select
+                    value={formData.employeeId}
+                    onChange={(e) => handleFormChange('employeeId', e.target.value)}
+                    label="Employee"
+                    disabled={editingPayroll}
+                  >
+                    {employeesData?.employees?.map(emp => (
+                      <MenuItem key={emp.id} value={emp.id}>
+                        {emp.full_name} ({emp.employee_code})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Month & Year */}
+              <Grid item xs={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Month</InputLabel>
+                  <Select
+                    value={formData.month}
+                    onChange={(e) => handleFormChange('month', e.target.value)}
+                    label="Month"
+                    disabled={editingPayroll}
+                  >
+                    {[...Array(12)].map((_, i) => (
+                      <MenuItem key={i + 1} value={i + 1}>
+                        {new Date(2024, i).toLocaleDateString('en-US', { month: 'long' })}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Year"
+                  type="number"
+                  value={formData.year}
+                  onChange={(e) => handleFormChange('year', parseInt(e.target.value))}
+                  disabled={editingPayroll}
+                />
+              </Grid>
+
+              {/* Basic Salary */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Basic Salary"
+                  type="number"
+                  value={formData.basicSalary}
+                  onChange={(e) => handleFormChange('basicSalary', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              {/* Allowances Section */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 600 }}>
+                  Allowances
+                </Typography>
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="HRA"
+                  type="number"
+                  value={formData.hra}
+                  onChange={(e) => handleFormChange('hra', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="DA"
+                  type="number"
+                  value={formData.da}
+                  onChange={(e) => handleFormChange('da', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Other Allowances"
+                  type="number"
+                  value={formData.otherAllowances}
+                  onChange={(e) => handleFormChange('otherAllowances', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              {/* Deductions Section */}
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" sx={{ mt: 1, mb: 1, fontWeight: 600 }}>
+                  Deductions
+                </Typography>
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="PF (Provident Fund)"
+                  type="number"
+                  value={formData.pf}
+                  onChange={(e) => handleFormChange('pf', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Tax"
+                  type="number"
+                  value={formData.tax}
+                  onChange={(e) => handleFormChange('tax', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={4}>
+                <TextField
+                  fullWidth
+                  label="Other Deductions"
+                  type="number"
+                  value={formData.otherDeductions}
+                  onChange={(e) => handleFormChange('otherDeductions', e.target.value)}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                  }}
+                />
+              </Grid>
+
+              {/* Calculated Summary */}
+              <Grid item xs={12}>
+                <Paper sx={{ p: 2, mt: 2, bgcolor: 'background.default' }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={4}>
+                      <Typography variant="body2" color="text.secondary">Gross Salary</Typography>
+                      <Typography variant="h6" color="primary">
+                        {formatCurrency(calculateGrossAndNet().gross)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="body2" color="text.secondary">Total Deductions</Typography>
+                      <Typography variant="h6" color="error">
+                        {formatCurrency(calculateGrossAndNet().totalDeductions)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Typography variant="body2" color="text.secondary">Net Salary</Typography>
+                      <Typography variant="h6" color="success.main">
+                        {formatCurrency(calculateGrossAndNet().net)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+
+              {/* Payment Details */}
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Payment Date"
+                  type="date"
+                  value={formData.paymentDate}
+                  onChange={(e) => handleFormChange('paymentDate', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Payment Method</InputLabel>
+                  <Select
+                    value={formData.paymentMethod}
+                    onChange={(e) => handleFormChange('paymentMethod', e.target.value)}
+                    label="Payment Method"
+                  >
+                    <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
+                    <MenuItem value="check">Check</MenuItem>
+                    <MenuItem value="cash">Cash</MenuItem>
+                    <MenuItem value="direct_deposit">Direct Deposit</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setOpenCreateDialog(false);
+            setOpenEditDialog(false);
+            setEditingPayroll(null);
+            resetForm();
+          }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmitPayroll}
+            disabled={createPayrollMutation.isLoading || updatePayrollMutation.isLoading}
+            startIcon={(createPayrollMutation.isLoading || updatePayrollMutation.isLoading) ? <CircularProgress size={20} /> : null}
+          >
+            {editingPayroll ? 'Update' : 'Create'} Payroll
           </Button>
         </DialogActions>
       </Dialog>

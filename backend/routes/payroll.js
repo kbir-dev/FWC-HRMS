@@ -56,9 +56,26 @@ router.get('/', requireAuth, requireRole(['admin', 'hr']), async (req, res) => {
     
     const result = await query(queryStr, params);
     
-    // Get total count
+    // Get total count - build same WHERE conditions
     let countQuery = `SELECT COUNT(*) FROM payrolls p WHERE 1=1`;
-    const countParams = params.slice(0, -2);
+    const countParams = [];
+    let countParamIndex = 1;
+    
+    if (employeeId) {
+      countQuery += ` AND p.employee_id = $${countParamIndex++}`;
+      countParams.push(employeeId);
+    }
+    
+    if (month) {
+      countQuery += ` AND p.month = $${countParamIndex++}`;
+      countParams.push(month);
+    }
+    
+    if (year) {
+      countQuery += ` AND p.year = $${countParamIndex++}`;
+      countParams.push(year);
+    }
+    
     const countResult = await query(countQuery, countParams);
     
     res.json({
@@ -150,8 +167,8 @@ router.post('/process', requireAuth, requireRole(['admin', 'hr']), async (req, r
 
       const result = await query(
         `INSERT INTO payrolls (
-          employee_id, month, year, base_salary, gross_salary, 
-          tax_amount, net_salary, payment_method, status, created_at
+          employee_id, month, year, basic_salary, gross_salary, 
+          tax, net_salary, payment_method, payment_status, created_at
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
         RETURNING *`,
         [
@@ -244,14 +261,14 @@ router.post('/', requireAuth, requireRole(['admin', 'hr']), async (req, res) => 
     
     const result = await query(`
       INSERT INTO payrolls (
-        employee_id, month, year, base_salary, allowances, deductions,
-        gross_salary, tax_amount, net_salary, payment_date, payment_method, notes
+        employee_id, month, year, basic_salary, allowances, deductions,
+        gross_salary, tax, net_salary, payment_date, payment_method, details
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `, [
       employeeId, month, year, baseSalary, JSON.stringify(allowances), JSON.stringify(deductions),
-      grossSalary, taxAmount, netSalary, paymentDate, paymentMethod, notes
+      grossSalary, taxAmount, netSalary, paymentDate, paymentMethod, notes ? JSON.stringify({ notes }) : '{}'
     ]);
     
     await logAudit(req.user.id, 'CREATE', 'payroll', result.rows[0].id, 
@@ -365,15 +382,15 @@ router.put('/:id', requireAuth, requireRole(['admin', 'hr']), async (req, res) =
     
     const result = await query(`
       UPDATE payrolls
-      SET base_salary = $1, allowances = $2, deductions = $3,
-          gross_salary = $4, tax_amount = $5, net_salary = $6,
-          payment_date = $7, payment_method = $8, notes = $9,
+      SET basic_salary = $1, allowances = $2, deductions = $3,
+          gross_salary = $4, tax = $5, net_salary = $6,
+          payment_date = $7, payment_method = $8, details = $9,
           updated_at = now()
       WHERE id = $10
       RETURNING *
     `, [
       baseSalary, JSON.stringify(allowances), JSON.stringify(deductions),
-      grossSalary, taxAmount, netSalary, paymentDate, paymentMethod, notes, id
+      grossSalary, taxAmount, netSalary, paymentDate, paymentMethod, notes ? JSON.stringify({ notes }) : '{}', id
     ]);
     
     if (result.rows.length === 0) {

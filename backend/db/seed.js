@@ -661,6 +661,125 @@ async function seed() {
       );
     }
     
+    // 9. Sample Interviews (schedule some interviews for top candidates)
+    console.log('Creating sample interviews...');
+    const topApplications = await client.query(
+      `SELECT id FROM applications WHERE screening_score >= 70 LIMIT 5`
+    );
+    
+    for (let i = 0; i < topApplications.rows.length; i++) {
+      const app = topApplications.rows[i];
+      const scheduledDate = new Date();
+      scheduledDate.setDate(scheduledDate.getDate() + i + 1); // Tomorrow, day after, etc.
+      scheduledDate.setHours(10 + (i * 2), 0, 0, 0); // 10 AM, 12 PM, 2 PM, etc.
+      
+      await client.query(
+        `INSERT INTO interviews (
+          application_id, round, interview_type, scheduled_at, 
+          duration_minutes, interviewers, location, meeting_link, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          app.id,
+          1,
+          i % 2 === 0 ? 'technical' : 'hr',
+          scheduledDate,
+          60,
+          JSON.stringify([{ name: 'Tech Manager', email: 'manager@hrms.com' }]),
+          i % 2 === 0 ? 'Conference Room A' : 'Online',
+          i % 2 === 0 ? null : 'https://meet.example.com/interview-' + app.id,
+          'scheduled'
+        ]
+      );
+    }
+    
+    // 10. Sample Performance Reviews
+    console.log('Creating performance reviews...');
+    const reviewPeriodStart = new Date();
+    reviewPeriodStart.setMonth(reviewPeriodStart.getMonth() - 6);
+    const reviewPeriodEnd = new Date();
+    reviewPeriodEnd.setMonth(reviewPeriodEnd.getMonth() - 1);
+    
+    // Review for employees (not for admin, HR, recruiter)
+    for (let i = 3; i < employeeIds.length; i++) {
+      const empId = employeeIds[i];
+      const reviewerId = employeeIds[3]; // Manager reviews them
+      const score = 70 + Math.floor(Math.random() * 25); // 70-95
+      
+      await client.query(
+        `INSERT INTO performance_reviews (
+          employee_id, reviewer_id, review_period_start, review_period_end,
+          overall_score, scores, strengths, areas_for_improvement, 
+          goals, reviewer_notes, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          empId,
+          reviewerId,
+          reviewPeriodStart,
+          reviewPeriodEnd,
+          score,
+          JSON.stringify({
+            technical: score + Math.floor(Math.random() * 10) - 5,
+            communication: score + Math.floor(Math.random() * 10) - 5,
+            teamwork: score + Math.floor(Math.random() * 10) - 5,
+            leadership: score + Math.floor(Math.random() * 10) - 5
+          }),
+          'Excellent technical skills and great team player',
+          'Could improve time management and documentation',
+          'Complete advanced certification, mentor junior developers',
+          'Overall good performance this period',
+          'reviewed'
+        ]
+      );
+    }
+    
+    // 11. Sample Leave Requests (mix of pending, approved, rejected)
+    console.log('Creating leave requests...');
+    const leaveTypes = ['sick', 'vacation', 'personal'];
+    const leaveStatuses = ['pending', 'approved', 'rejected'];
+    
+    for (let i = 0; i < employeeIds.length; i++) {
+      const empId = employeeIds[i];
+      
+      // Create 2-3 leave requests per employee
+      const numLeaves = 2 + Math.floor(Math.random() * 2);
+      
+      for (let j = 0; j < numLeaves; j++) {
+        const leaveType = leaveTypes[Math.floor(Math.random() * leaveTypes.length)];
+        const status = leaveStatuses[Math.floor(Math.random() * leaveStatuses.length)];
+        
+        const startDate = new Date();
+        const futureOffset = Math.floor(Math.random() * 60) - 30; // -30 to +30 days
+        startDate.setDate(startDate.getDate() + futureOffset);
+        
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + Math.floor(Math.random() * 4) + 1); // 1-5 days
+        
+        const approvedBy = status !== 'pending' ? employeeIds[3] : null; // Manager approves
+        const approvalDate = status !== 'pending' ? new Date() : null;
+        
+        await client.query(
+          `INSERT INTO leave_requests (
+            employee_id, leave_type, start_date, end_date, reason,
+            status, approved_by, approval_date, approval_notes
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            empId,
+            leaveType,
+            startDate.toISOString().split('T')[0],
+            endDate.toISOString().split('T')[0],
+            leaveType === 'sick' ? 'Feeling unwell' : 
+            leaveType === 'vacation' ? 'Family vacation' : 
+            'Personal matters',
+            status,
+            approvedBy,
+            approvalDate,
+            status === 'approved' ? 'Approved as requested' : 
+            status === 'rejected' ? 'Insufficient leave balance' : null
+          ]
+        );
+      }
+    }
+    
     await client.query('COMMIT');
     console.log('✓ Database seeded successfully!');
     console.log('\nCreated:');
@@ -670,6 +789,9 @@ async function seed() {
     console.log('- 6 employees');
     console.log('- 2 job postings');
     console.log('- 10 applications with sample resumes');
+    console.log('- 5 scheduled interviews');
+    console.log('- 3 performance reviews');
+    console.log('- 12-18 leave requests (pending, approved, rejected)');
     console.log('- ~120 attendance records');
     console.log('- 6 payroll records');
     console.log('\nDefault password for all users: password123');

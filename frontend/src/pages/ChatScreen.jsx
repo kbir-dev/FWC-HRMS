@@ -216,7 +216,7 @@ const ChatScreen = ({ applicationId: propApplicationId = null, onClose = null, s
           flex: 1,
           overflowY: 'auto',
           p: 2,
-          bgcolor: 'grey.50',
+          bgcolor: 'background.default',
           borderRadius: isStandalone ? 1 : 0,
           mt: isStandalone ? 2 : 0,
         }}

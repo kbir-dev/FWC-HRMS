@@ -112,13 +112,14 @@ export const ThemeProvider = ({ children }) => {
                   dark: '#039be5',
                 },
                 background: {
-                  default: '#0f1419',
+                  default: '#0a0e14',
                   paper: '#1a2027',
                 },
                 text: {
-                  primary: '#ffffff',
-                  secondary: '#b0bec5',
+                  primary: '#e3e8ef',
+                  secondary: '#8b96a5',
                 },
+                divider: 'rgba(255, 255, 255, 0.12)',
               }),
         },
         typography: {
@@ -218,6 +219,46 @@ export const ThemeProvider = ({ children }) => {
               head: {
                 fontWeight: 600,
                 backgroundColor: mode === 'light' ? '#f5f7fa' : '#1a2027',
+                color: mode === 'light' ? '#263238' : '#e3e8ef',
+              },
+              body: {
+                color: mode === 'light' ? '#263238' : '#e3e8ef',
+              },
+            },
+          },
+          MuiTypography: {
+            styleOverrides: {
+              root: {
+                color: mode === 'light' ? undefined : 'inherit',
+              },
+            },
+          },
+          MuiTextField: {
+            styleOverrides: {
+              root: {
+                '& .MuiInputBase-input': {
+                  color: mode === 'light' ? '#263238' : '#e3e8ef',
+                },
+                '& .MuiInputLabel-root': {
+                  color: mode === 'light' ? '#546e7a' : '#8b96a5',
+                },
+              },
+            },
+          },
+          MuiSelect: {
+            styleOverrides: {
+              root: {
+                color: mode === 'light' ? '#263238' : '#e3e8ef',
+              },
+            },
+          },
+          MuiListItemText: {
+            styleOverrides: {
+              primary: {
+                color: mode === 'light' ? '#263238' : '#e3e8ef',
+              },
+              secondary: {
+                color: mode === 'light' ? '#546e7a' : '#8b96a5',
               },
             },
           },

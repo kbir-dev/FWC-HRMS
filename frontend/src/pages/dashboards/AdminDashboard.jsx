@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../../api/client';
 import StatCard from '../../components/dashboard/StatCard';
 import KPICard from '../../components/dashboard/KPICard';
@@ -20,6 +21,7 @@ import BarChart from '../../components/charts/BarChart';
 import PieChart from '../../components/charts/PieChart';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { data: stats, isLoading } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
@@ -27,56 +29,55 @@ const AdminDashboard = () => {
         const response = await apiClient.get('/dashboard/admin');
         return response.data;
       } catch (error) {
-        // Return mock data if endpoint doesn't exist yet
+        // Fallback data matching actual database seed
         return {
-          totalUsers: 156,
-          totalEmployees: 145,
-          totalDepartments: 12,
-          activeJobs: 8,
-          pendingApplications: 45,
+          totalUsers: 6,
+          totalEmployees: 6,
+          totalDepartments: 6,
+          activeJobs: 2,
+          pendingApplications: 10,
           userActivity: [
-            { name: 'Mon', logins: 42, active: 38 },
-            { name: 'Tue', logins: 48, active: 45 },
-            { name: 'Wed', logins: 51, active: 48 },
-            { name: 'Thu', logins: 45, active: 42 },
-            { name: 'Fri', logins: 55, active: 52 },
-            { name: 'Sat', logins: 12, active: 10 },
-            { name: 'Sun', logins: 8, active: 6 },
+            { name: 'Mon', logins: 5, active: 4 },
+            { name: 'Tue', logins: 6, active: 5 },
+            { name: 'Wed', logins: 5, active: 5 },
+            { name: 'Thu', logins: 6, active: 6 },
+            { name: 'Fri', logins: 6, active: 5 },
+            { name: 'Sat', logins: 0, active: 0 },
+            { name: 'Sun', logins: 0, active: 0 },
           ],
           recruitmentFunnel: [
-            { name: 'Applied', count: 145 },
-            { name: 'Screened', count: 89 },
-            { name: 'Interview', count: 34 },
-            { name: 'Offer', count: 12 },
-            { name: 'Hired', count: 8 },
+            { name: 'Applied', count: 10 },
+            { name: 'Screened', count: 9 },
+            { name: 'Interview', count: 5 },
+            { name: 'Shortlisted', count: 7 },
           ],
           departmentDistribution: [
-            { name: 'Engineering', value: 45 },
-            { name: 'Sales', value: 28 },
-            { name: 'Marketing', value: 22 },
-            { name: 'HR', value: 15 },
-            { name: 'Finance', value: 18 },
-            { name: 'Operations', value: 17 },
+            { name: 'Engineering', value: 3 },
+            { name: 'Human Resources', value: 3 },
+            { name: 'Sales', value: 0 },
+            { name: 'Marketing', value: 0 },
+            { name: 'Finance', value: 0 },
+            { name: 'Operations', value: 0 },
           ],
           recentActivities: [
             {
               type: 'user',
-              title: 'New User Registered',
-              description: 'John Smith joined as Software Engineer',
-              time: '2 hours ago',
+              title: 'New Applications',
+              description: '10 candidates applied with AI screening',
+              time: 'Today',
               badge: 'New',
             },
             {
               type: 'job',
               title: 'Job Posted',
-              description: 'Senior Frontend Developer position opened',
-              time: '5 hours ago',
+              description: 'Senior Full Stack Engineer position opened',
+              time: 'This week',
             },
             {
               type: 'application',
-              title: 'Application Received',
-              description: '15 new applications for Data Analyst role',
-              time: '1 day ago',
+              title: 'Interviews Scheduled',
+              description: '5 interviews scheduled for top candidates',
+              time: 'Today',
             },
           ],
         };
@@ -93,18 +94,18 @@ const AdminDashboard = () => {
       path: '/employees',
     },
     {
-      title: 'View Reports',
-      description: 'Analytics & insights',
-      icon: <AssessmentIcon />,
+      title: 'Performance Reviews',
+      description: 'View & manage reviews',
+      icon: <TrendingUpIcon />,
       color: 'success',
-      path: '/reports',
+      path: '/performance',
     },
     {
-      title: 'System Settings',
-      description: 'Configure system',
-      icon: <SettingsIcon />,
+      title: 'Manage Payroll',
+      description: 'Process & view payroll',
+      icon: <AssessmentIcon />,
       color: 'warning',
-      path: '/settings',
+      path: '/payroll',
     },
   ];
 
