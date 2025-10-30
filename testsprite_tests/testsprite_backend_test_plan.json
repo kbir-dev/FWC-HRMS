@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "user_registration_with_role_validation",
+    "description": "Test the user registration endpoint to ensure it accepts valid email, password, and role inputs, and successfully creates a user with the specified role."
+  },
+  {
+    "id": "TC002",
+    "title": "user_login_with_valid_credentials",
+    "description": "Verify that the login endpoint authenticates users with correct email and password, returning a successful login response and JWT token."
+  },
+  {
+    "id": "TC003",
+    "title": "refresh_access_token_functionality",
+    "description": "Test the token refresh endpoint to ensure it issues a new access token when provided with a valid refresh token."
+  },
+  {
+    "id": "TC004",
+    "title": "user_logout_and_session_invalidation",
+    "description": "Verify that the logout endpoint invalidates the user's session and tokens, preventing further access without re-authentication."
+  },
+  {
+    "id": "TC005",
+    "title": "get_current_user_profile_with_authentication",
+    "description": "Test the endpoint to retrieve the current authenticated user's profile, ensuring it returns correct user details when a valid token is provided."
+  },
+  {
+    "id": "TC006",
+    "title": "create_new_job_posting_with_authorization",
+    "description": "Verify that authorized users can create new job postings with valid data, and the system responds with a success status and job details."
+  },
+  {
+    "id": "TC007",
+    "title": "apply_for_job_with_resume_upload_and_ai_screening",
+    "description": "Test the job application endpoint to ensure candidates can submit applications with resume files, triggering AI-powered resume screening and returning a success response."
+  },
+  {
+    "id": "TC008",
+    "title": "submit_leave_request_and_approval_workflow",
+    "description": "Verify that employees can submit leave requests, and managers can approve or reject these requests, with correct state transitions and notifications."
+  },
+  {
+    "id": "TC009",
+    "title": "send_chat_message_and_receive_ai_response",
+    "description": "Test the conversational AI chat endpoint to ensure messages are processed with context and AI providers, returning appropriate AI-generated responses."
+  },
+  {
+    "id": "TC010",
+    "title": "get_role_specific_dashboard_statistics",
+    "description": "Verify that each user role can access their specific dashboard statistics endpoint and receive accurate real-time data and KPIs."
+  }
+]

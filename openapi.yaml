@@ -1,0 +1,667 @@
+openapi: 3.0.3
+info:
+  title: AI-Powered HRMS API
+  description: Next-generation Human Resource Management System with AI-powered resume screening and conversational features
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:3001/api
+    description: Local development server
+  - url: https://your-production-url.com/api
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Employees
+    description: Employee management operations
+  - name: Jobs
+    description: Job posting management
+  - name: Applications
+    description: Job application and screening
+  - name: Chat
+    description: AI conversational interface
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error message"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, hr, recruiter, manager, employee]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    Employee:
+      type: object
+      properties:
+        id:
+          type: integer
+        employee_code:
+          type: string
+        full_name:
+          type: string
+        position:
+          type: string
+        department_id:
+          type: integer
+        department_name:
+          type: string
+        employment_type:
+          type: string
+          enum: [full-time, part-time, contract, intern]
+        hire_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [active, inactive, terminated, on-leave]
+
+    JobPosting:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        requirements:
+          type: string
+        responsibilities:
+          type: string
+        department_id:
+          type: integer
+        employment_type:
+          type: string
+        experience_level:
+          type: string
+          enum: [entry, mid, senior, lead]
+        required_skills:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, published, closed, on-hold]
+        published_at:
+          type: string
+          format: date-time
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_id:
+          type: integer
+        candidate_name:
+          type: string
+        candidate_email:
+          type: string
+          format: email
+        candidate_phone:
+          type: string
+        years_of_experience:
+          type: number
+        screening_score:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: [received, screening, screened, shortlisted, interview, rejected, offer, hired]
+        applied_at:
+          type: string
+          format: date-time
+
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Create new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                role:
+                  type: string
+                  enum: [employee, manager, hr, recruiter, admin]
+                  default: employee
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user info
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User info retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  /employees:
+    get:
+      tags:
+        - Employees
+      summary: List employees
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: departmentId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            default: active
+      responses:
+        '200':
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      pages:
+                        type: integer
+
+    post:
+      tags:
+        - Employees
+      summary: Create new employee
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employeeCode
+                - fullName
+                - hireDate
+              properties:
+                employeeCode:
+                  type: string
+                fullName:
+                  type: string
+                position:
+                  type: string
+                departmentId:
+                  type: integer
+                hireDate:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  employee:
+                    $ref: '#/components/schemas/Employee'
+
+  /jobs:
+    get:
+      tags:
+        - Jobs
+      summary: List job postings
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            default: published
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobPosting'
+                  pagination:
+                    type: object
+
+    post:
+      tags:
+        - Jobs
+      summary: Create new job posting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                requirements:
+                  type: string
+                requiredSkills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  job:
+                    $ref: '#/components/schemas/JobPosting'
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get job posting details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job:
+                    $ref: '#/components/schemas/JobPosting'
+
+  /jobs/{jobId}/apply:
+    post:
+      tags:
+        - Applications
+      summary: Apply for a job
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - resume
+                - candidateName
+                - candidateEmail
+              properties:
+                resume:
+                  type: string
+                  format: binary
+                candidateName:
+                  type: string
+                candidateEmail:
+                  type: string
+                  format: email
+                candidatePhone:
+                  type: string
+                coverLetter:
+                  type: string
+                yearsOfExperience:
+                  type: number
+      responses:
+        '201':
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  applicationId:
+                    type: integer
+                  status:
+                    type: string
+
+  /applications:
+    get:
+      tags:
+        - Applications
+      summary: List applications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: jobId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: minScore
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Application'
+                  pagination:
+                    type: object
+
+  /applications/{id}:
+    get:
+      tags:
+        - Applications
+      summary: Get application details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  application:
+                    $ref: '#/components/schemas/Application'
+
+  /applications/screening/{applicationId}/report:
+    get:
+      tags:
+        - Applications
+      summary: Get AI screening report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Screening report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  report:
+                    type: object
+                    properties:
+                      applicationId:
+                        type: integer
+                      candidate:
+                        type: object
+                      screening:
+                        type: object
+                        properties:
+                          score:
+                            type: number
+                          status:
+                            type: string
+                          details:
+                            type: object
+
+  /chat:
+    post:
+      tags:
+        - Chat
+      summary: Chat with AI assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                conversationId:
+                  type: integer
+                applicationId:
+                  type: integer
+                message:
+                  type: string
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversationId:
+                    type: integer
+                  response:
+                    type: string
+                  provider:
+                    type: string
+

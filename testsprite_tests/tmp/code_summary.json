@@ -1,0 +1,627 @@
+{
+  "tech_stack": [
+    "Node.js",
+    "Express.js",
+    "PostgreSQL",
+    "Redis",
+    "React",
+    "Vite",
+    "Material-UI",
+    "Socket.io",
+    "BullMQ",
+    "JWT",
+    "Bcrypt",
+    "Joi",
+    "Multer",
+    "PDF-Parse",
+    "Google Gemini AI",
+    "HuggingFace AI"
+  ],
+  "features": [
+    {
+      "name": "Authentication",
+      "description": "User authentication with JWT tokens, signup, login, logout, and refresh token functionality. Supports multiple roles: employee, manager, hr, recruiter, admin.",
+      "files": ["backend/routes/auth.js", "backend/middleware/auth.js", "backend/utils/jwt.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/auth/signup": {
+            "post": {
+              "summary": "User registration",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {"type": "string", "format": "email"},
+                        "password": {"type": "string", "minLength": 8},
+                        "role": {"type": "string", "enum": ["employee", "manager", "hr", "recruiter", "admin"]}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "User created successfully"}
+              }
+            }
+          },
+          "/api/auth/login": {
+            "post": {
+              "summary": "User login",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {"type": "string", "format": "email"},
+                        "password": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "Login successful"}
+              }
+            }
+          },
+          "/api/auth/refresh": {
+            "post": {
+              "summary": "Refresh access token",
+              "responses": {
+                "200": {"description": "Token refreshed"}
+              }
+            }
+          },
+          "/api/auth/logout": {
+            "post": {
+              "summary": "User logout",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Logged out successfully"}
+              }
+            }
+          },
+          "/api/auth/me": {
+            "get": {
+              "summary": "Get current user profile",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "User profile retrieved"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Job Management",
+      "description": "CRUD operations for job postings with filtering, pagination, and role-based access control. Supports job status management (draft, published, closed, on-hold).",
+      "files": ["backend/routes/jobs.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/jobs": {
+            "get": {
+              "summary": "List all job postings",
+              "parameters": [
+                {"name": "status", "in": "query", "schema": {"type": "string"}},
+                {"name": "departmentId", "in": "query", "schema": {"type": "integer"}},
+                {"name": "experienceLevel", "in": "query", "schema": {"type": "string"}},
+                {"name": "page", "in": "query", "schema": {"type": "integer"}},
+                {"name": "limit", "in": "query", "schema": {"type": "integer"}}
+              ],
+              "responses": {
+                "200": {"description": "List of jobs with pagination"}
+              }
+            },
+            "post": {
+              "summary": "Create new job posting",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Job created successfully"}
+              }
+            }
+          },
+          "/api/jobs/{id}": {
+            "get": {
+              "summary": "Get single job posting",
+              "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "integer"}}],
+              "responses": {
+                "200": {"description": "Job details"}
+              }
+            },
+            "put": {
+              "summary": "Update job posting",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Job updated successfully"}
+              }
+            },
+            "delete": {
+              "summary": "Delete job posting",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Job deleted successfully"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Application Management",
+      "description": "Job application submission with resume upload, AI-powered resume screening using Gemini/HuggingFace, background job processing with BullMQ, and application status tracking.",
+      "files": ["backend/routes/applications.js", "backend/services/screening/resumeProcessor.js", "backend/workers/screeningWorker.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/jobs/{jobId}/apply": {
+            "post": {
+              "summary": "Apply for a job",
+              "parameters": [{"name": "jobId", "in": "path", "required": true, "schema": {"type": "integer"}}],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "multipart/form-data": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "resume": {"type": "string", "format": "binary"},
+                        "candidateName": {"type": "string"},
+                        "candidateEmail": {"type": "string", "format": "email"},
+                        "candidatePhone": {"type": "string"},
+                        "coverLetter": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {"description": "Application submitted successfully"}
+              }
+            }
+          },
+          "/api/applications": {
+            "get": {
+              "summary": "List applications (admin/hr/recruiter)",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "List of applications"}
+              }
+            }
+          },
+          "/api/applications/{id}": {
+            "get": {
+              "summary": "Get single application",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Application details"}
+              }
+            }
+          },
+          "/api/applications/{id}/status": {
+            "put": {
+              "summary": "Update application status",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Status updated"}
+              }
+            }
+          },
+          "/api/applications/screening/{applicationId}/report": {
+            "get": {
+              "summary": "Get AI screening report",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Screening report"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Employee Management",
+      "description": "Employee CRUD operations with hierarchical relationships (manager-employee), department associations, and role-based access control.",
+      "files": ["backend/routes/employees.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/employees": {
+            "get": {
+              "summary": "List employees",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "List of employees"}
+              }
+            },
+            "post": {
+              "summary": "Create employee",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Employee created"}
+              }
+            }
+          },
+          "/api/employees/{id}": {
+            "get": {
+              "summary": "Get employee details",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Employee details"}
+              }
+            },
+            "put": {
+              "summary": "Update employee",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Employee updated"}
+              }
+            },
+            "delete": {
+              "summary": "Soft delete employee",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Employee terminated"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Attendance Management",
+      "description": "Employee attendance tracking with check-in/check-out functionality, work hours calculation, attendance summary reports, and role-based filtering.",
+      "files": ["backend/routes/attendance.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/attendance": {
+            "get": {
+              "summary": "Get attendance records",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Attendance records"}
+              }
+            },
+            "post": {
+              "summary": "Create attendance record",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Attendance created"}
+              }
+            }
+          },
+          "/api/attendance/check-in": {
+            "post": {
+              "summary": "Employee check-in",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Checked in successfully"}
+              }
+            }
+          },
+          "/api/attendance/check-out": {
+            "post": {
+              "summary": "Employee check-out",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Checked out successfully"}
+              }
+            }
+          },
+          "/api/attendance/summary/{employeeId}": {
+            "get": {
+              "summary": "Get attendance summary",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Attendance summary"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Payroll Management",
+      "description": "Payroll generation and management with salary calculations, allowances, deductions, tax calculations, and bulk payroll generation for multiple employees.",
+      "files": ["backend/routes/payroll.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/payroll": {
+            "get": {
+              "summary": "Get payroll records",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Payroll records"}
+              }
+            },
+            "post": {
+              "summary": "Create payroll record",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Payroll created"}
+              }
+            }
+          },
+          "/api/payroll/generate": {
+            "post": {
+              "summary": "Generate payroll for multiple employees",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Payroll generated"}
+              }
+            }
+          },
+          "/api/payroll/employee/{employeeId}": {
+            "get": {
+              "summary": "Get payroll history for employee",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Payroll history"}
+              }
+            }
+          },
+          "/api/payroll/{id}": {
+            "get": {
+              "summary": "Get single payroll record",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Payroll details"}
+              }
+            },
+            "put": {
+              "summary": "Update payroll record",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Payroll updated"}
+              }
+            },
+            "delete": {
+              "summary": "Delete payroll record",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Payroll deleted"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Leave Management",
+      "description": "Leave request submission and approval workflow with multiple leave types (sick, vacation, personal, maternity, paternity), leave balance tracking, overlap detection, and approval workflow.",
+      "files": ["backend/routes/leave.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/leave": {
+            "get": {
+              "summary": "Get leave requests",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Leave requests"}
+              }
+            },
+            "post": {
+              "summary": "Create leave request",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Leave request created"}
+              }
+            }
+          },
+          "/api/leave/balance/{employeeId}": {
+            "get": {
+              "summary": "Get leave balance",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Leave balance"}
+              }
+            }
+          },
+          "/api/leave/{id}": {
+            "get": {
+              "summary": "Get single leave request",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Leave request details"}
+              }
+            }
+          },
+          "/api/leave/{id}/approve": {
+            "put": {
+              "summary": "Approve/reject leave request",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Leave request updated"}
+              }
+            }
+          },
+          "/api/leave/{id}/cancel": {
+            "put": {
+              "summary": "Cancel leave request",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Leave request cancelled"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Performance Reviews",
+      "description": "Performance review system with multi-factor scoring (quality, productivity, communication, teamwork, goals), performance summaries, and trend analysis.",
+      "files": ["backend/routes/performance.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/performance": {
+            "get": {
+              "summary": "Get performance reviews",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Performance reviews"}
+              }
+            },
+            "post": {
+              "summary": "Create performance review",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "201": {"description": "Review created"}
+              }
+            }
+          },
+          "/api/performance/{id}": {
+            "get": {
+              "summary": "Get single performance review",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Review details"}
+              }
+            },
+            "put": {
+              "summary": "Update performance review",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Review updated"}
+              }
+            },
+            "delete": {
+              "summary": "Delete performance review",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Review deleted"}
+              }
+            }
+          },
+          "/api/performance/employee/{employeeId}/summary": {
+            "get": {
+              "summary": "Get performance summary",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Performance summary with trends"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Dashboard & Analytics",
+      "description": "Role-specific dashboards (Admin, HR, Recruiter, Manager, Employee) with real-time statistics, recruitment funnels, department distribution, and KPI metrics.",
+      "files": ["backend/routes/dashboard.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/dashboard/admin/stats": {
+            "get": {
+              "summary": "Admin dashboard statistics",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Admin stats"}
+              }
+            }
+          },
+          "/api/dashboard/hr/stats": {
+            "get": {
+              "summary": "HR dashboard statistics",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "HR stats"}
+              }
+            }
+          },
+          "/api/dashboard/recruiter/stats": {
+            "get": {
+              "summary": "Recruiter dashboard statistics",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Recruiter stats"}
+              }
+            }
+          },
+          "/api/dashboard/manager/stats": {
+            "get": {
+              "summary": "Manager dashboard statistics",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Manager stats"}
+              }
+            }
+          },
+          "/api/dashboard/employee/stats": {
+            "get": {
+              "summary": "Employee dashboard statistics",
+              "security": [{"bearerAuth": []}],
+              "responses": {
+                "200": {"description": "Employee stats"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Conversational AI Chat",
+      "description": "AI-powered chat interface for recruitment screening with conversation history, context management, and support for multiple AI providers (Gemini, HuggingFace, OpenAI).",
+      "files": ["backend/routes/chat.js", "backend/services/ai/modelAdapter.js", "backend/services/ai/providers/gemini.js", "backend/services/ai/providers/huggingface.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "paths": {
+          "/api/chat": {
+            "post": {
+              "summary": "Send chat message",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "conversationId": {"type": "integer"},
+                        "applicationId": {"type": "integer"},
+                        "message": {"type": "string"},
+                        "context": {"type": "object"}
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {"description": "AI response"}
+              }
+            }
+          },
+          "/api/chat/conversations/{id}": {
+            "get": {
+              "summary": "Get conversation history",
+              "responses": {
+                "200": {"description": "Conversation details"}
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "WebSocket Notifications",
+      "description": "Real-time notification delivery via WebSocket for application updates, leave approvals, and system notifications.",
+      "files": ["backend/services/websocket/socketService.js"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "description": "WebSocket service for real-time notifications on ws://localhost:3001"
+        }
+      }
+    }
+  ]
+}

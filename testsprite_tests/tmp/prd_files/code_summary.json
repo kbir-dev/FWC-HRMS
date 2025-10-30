@@ -1,0 +1,306 @@
+{
+  "project_name": "AI-Powered HRMS",
+  "description": "A comprehensive Human Resource Management System with AI-powered features including resume screening, role-based dashboards, and multi-factor authentication",
+  "tech_stack": {
+    "frontend": {
+      "framework": "React 18",
+      "build_tool": "Vite 5.4.21",
+      "language": "JavaScript (JSX)",
+      "ui_library": "Material-UI (MUI) 5.15.3",
+      "styling": "TailwindCSS 3.4.1",
+      "routing": "React Router DOM 6.21.1",
+      "state_management": "React Context API, TanStack React Query 5.17.9",
+      "charts": "Recharts 2.10.4",
+      "http_client": "Axios 1.6.5",
+      "real_time": "Socket.io-client 4.6.0",
+      "speech_api": "Web Speech API (browser native)"
+    },
+    "backend": {
+      "framework": "Express.js 4.18.2",
+      "runtime": "Node.js v20+",
+      "language": "JavaScript (ES6+ modules)",
+      "database": "PostgreSQL 14+ with pgvector extension",
+      "cache": "Redis 7+ (ioredis 5.3.2)",
+      "queue": "BullMQ 5.1.5",
+      "authentication": "JWT (jsonwebtoken 9.0.2)",
+      "password_hashing": "bcryptjs 2.4.3",
+      "validation": "Joi",
+      "file_upload": "Multer 1.4.5",
+      "ai_providers": "Google Gemini API, HuggingFace Inference API",
+      "email": "Nodemailer 6.9.7",
+      "websocket": "Socket.io 4.6.0"
+    },
+    "infrastructure": {
+      "containerization": "Docker, Docker Compose",
+      "database": "PostgreSQL with pgvector",
+      "cache": "Redis",
+      "deployment": "Vercel (frontend), Render (backend), Supabase (database)"
+    }
+  },
+  "features": {
+    "authentication": {
+      "login": "JWT-based authentication with email/password",
+      "signup": "User registration with role assignment",
+      "roles": ["admin", "hr", "recruiter", "manager", "employee"],
+      "session_management": "JWT access and refresh tokens",
+      "protected_routes": "Role-based access control (RBAC)"
+    },
+    "role_based_dashboards": {
+      "admin_dashboard": {
+        "description": "System-wide analytics and management",
+        "features": [
+          "Total users, employees, departments metrics",
+          "User activity trends (7-day chart)",
+          "Recruitment funnel visualization",
+          "Department distribution pie chart",
+          "System activity feed",
+          "Quick actions for system management"
+        ]
+      },
+      "hr_dashboard": {
+        "description": "HR operations and employee lifecycle management",
+        "features": [
+          "Employee headcount and new hires tracking",
+          "Recruitment pipeline overview",
+          "Upcoming interviews schedule",
+          "Pending leave requests management",
+          "Payroll summary",
+          "Quick actions for HR tasks"
+        ]
+      },
+      "recruiter_dashboard": {
+        "description": "Recruitment-focused workflow",
+        "features": [
+          "Active job postings metrics",
+          "Application pipeline visualization",
+          "AI screening score distribution",
+          "Top candidates with AI rankings",
+          "Interview scheduling",
+          "Quick actions for recruitment"
+        ]
+      },
+      "manager_dashboard": {
+        "description": "Team management and oversight",
+        "features": [
+          "Team size and attendance metrics",
+          "Team attendance trends (7-day chart)",
+          "Team performance radar chart",
+          "Leave approval workflow",
+          "Direct reports management",
+          "Quick actions for team tasks"
+        ]
+      },
+      "employee_dashboard": {
+        "description": "Self-service portal for employees",
+        "features": [
+          "Personal profile and information",
+          "Attendance tracking and statistics",
+          "Leave balance with progress bars",
+          "Recent payslips access",
+          "Performance score tracking",
+          "Internal job opportunities",
+          "Upcoming events calendar",
+          "Quick actions for self-service"
+        ]
+      }
+    },
+    "ai_features": {
+      "resume_screening": {
+        "description": "Automated AI-powered resume analysis",
+        "features": [
+          "Resume parsing (PDF, DOCX, TXT)",
+          "Text extraction and analysis",
+          "Vector embeddings (768-dimensional)",
+          "Semantic similarity matching with job descriptions",
+          "Multi-factor AI scoring (60% AI + 40% rules)",
+          "Automatic candidate classification (Shortlisted/Screened/Rejected)",
+          "Background job processing with BullMQ"
+        ]
+      },
+      "conversational_ai": {
+        "description": "AI-powered chat for candidate screening",
+        "features": [
+          "Multi-turn conversation support",
+          "Context-aware responses",
+          "Conversation history storage",
+          "Multi-provider support (Gemini, HuggingFace)"
+        ]
+      },
+      "voice_interaction": {
+        "description": "Voice-enabled chat interface",
+        "features": [
+          "Speech-to-text (Web Speech API)",
+          "Text-to-speech synthesis",
+          "Real-time voice transcription",
+          "Visual feedback for listening state"
+        ]
+      }
+    },
+    "employee_management": {
+      "employee_directory": "Full CRUD operations for employee data",
+      "organizational_hierarchy": "Department and manager relationships",
+      "employee_profiles": "Contact info, documents, emergency contacts",
+      "role_assignment": "Multi-role support with permissions"
+    },
+    "recruitment": {
+      "job_postings": "Create, update, publish job openings",
+      "application_management": "Track and manage applications",
+      "internal_job_board": "Employees can view and apply for internal positions",
+      "ai_candidate_ranking": "Automated scoring and ranking",
+      "interview_scheduling": "Track interview stages"
+    },
+    "attendance": {
+      "check_in_out": "Manual and automated attendance recording",
+      "attendance_tracking": "Present, absent, late, half-day, leave tracking",
+      "attendance_reports": "Monthly and weekly summaries",
+      "multi_source_support": "Manual, biometric, app, system sources"
+    },
+    "payroll": {
+      "payroll_generation": "Automated monthly payroll calculation",
+      "payslip_access": "Employees can view and download payslips",
+      "allowances_deductions": "Configurable components",
+      "tax_calculation": "Automated tax computation",
+      "payroll_history": "Historical records"
+    },
+    "performance": {
+      "performance_reviews": "Multi-factor scoring system",
+      "review_tracking": "Quality, productivity, communication, teamwork, goals",
+      "performance_trends": "Historical analysis with charts",
+      "manager_reviews": "Manager-employee review workflow"
+    },
+    "leave_management": {
+      "leave_requests": "Submit and track leave applications",
+      "leave_approval": "Manager/HR approval workflow",
+      "leave_balance": "Track annual, sick, casual leave",
+      "leave_calendar": "View team leave schedules"
+    },
+    "notifications": {
+      "email_notifications": "Nodemailer for automated emails",
+      "real_time_notifications": "Socket.io for live updates",
+      "notification_center": "In-app notification display"
+    },
+    "ui_ux": {
+      "theme_system": "Light and dark mode support",
+      "professional_design": "Corporate color palette with Material-UI",
+      "responsive_layout": "Mobile-first design",
+      "data_visualization": "Recharts for charts (Line, Bar, Pie, Radar, Area)",
+      "role_based_navigation": "Customized menu per role",
+      "quick_actions": "Context-aware action buttons"
+    }
+  },
+  "key_pages": {
+    "public": [
+      "/login - User authentication",
+      "/signup - User registration"
+    ],
+    "common": [
+      "/ - Dashboard (role-specific)",
+      "/profile - User profile"
+    ],
+    "admin_hr_recruiter": [
+      "/jobs - Job postings management",
+      "/applications - Application review"
+    ],
+    "admin_hr_manager": [
+      "/employees - Employee directory",
+      "/attendance - Attendance management",
+      "/payroll - Payroll processing",
+      "/performance - Performance reviews",
+      "/leave - Leave management"
+    ],
+    "employee": [
+      "/jobs - Internal job board (view and apply)",
+      "/attendance - My attendance",
+      "/payroll - My payslips",
+      "/performance - My performance",
+      "/leave - My leave requests"
+    ]
+  },
+  "api_endpoints": {
+    "auth": [
+      "POST /api/auth/login",
+      "POST /api/auth/signup",
+      "POST /api/auth/refresh",
+      "POST /api/auth/logout"
+    ],
+    "dashboard": [
+      "GET /api/dashboard/admin/stats",
+      "GET /api/dashboard/hr/stats",
+      "GET /api/dashboard/recruiter/stats",
+      "GET /api/dashboard/manager/stats",
+      "GET /api/dashboard/employee/stats"
+    ],
+    "employees": [
+      "GET /api/employees",
+      "GET /api/employees/:id",
+      "POST /api/employees",
+      "PUT /api/employees/:id",
+      "DELETE /api/employees/:id"
+    ],
+    "jobs": [
+      "GET /api/jobs",
+      "GET /api/jobs/:id",
+      "POST /api/jobs",
+      "PUT /api/jobs/:id",
+      "DELETE /api/jobs/:id"
+    ],
+    "applications": [
+      "POST /api/applications/:jobId/apply",
+      "GET /api/applications",
+      "GET /api/applications/my-applications",
+      "GET /api/applications/:id",
+      "PUT /api/applications/:id/status"
+    ],
+    "attendance": [
+      "GET /api/attendance",
+      "POST /api/attendance/check-in",
+      "POST /api/attendance/check-out",
+      "GET /api/attendance/summary"
+    ],
+    "payroll": [
+      "GET /api/payroll",
+      "POST /api/payroll",
+      "GET /api/payroll/:id"
+    ],
+    "performance": [
+      "GET /api/performance",
+      "POST /api/performance",
+      "GET /api/performance/:id"
+    ],
+    "leave": [
+      "GET /api/leave",
+      "POST /api/leave",
+      "PUT /api/leave/:id/approve",
+      "PUT /api/leave/:id/reject"
+    ],
+    "chat": [
+      "POST /api/chat/message"
+    ]
+  },
+  "database_schema": {
+    "main_tables": [
+      "users - User authentication and roles",
+      "employees - Employee data management",
+      "departments - Department organization",
+      "job_postings - Job openings",
+      "applications - Job applications with AI scores",
+      "attendance - Attendance records",
+      "payrolls - Payroll data",
+      "performance_reviews - Performance tracking",
+      "leave_requests - Leave management",
+      "conversations - AI chat history",
+      "audit_logs - System audit trail"
+    ],
+    "extensions": [
+      "pgvector - Vector similarity search for AI",
+      "uuid-ossp - UUID generation"
+    ]
+  },
+  "environment_config": {
+    "frontend_port": 5173,
+    "backend_port": 3001,
+    "database_port": 5432,
+    "redis_port": 6379
+  }
+}
+
